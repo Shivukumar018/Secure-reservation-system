@@ -43,16 +43,16 @@ rdb = redis.Redis(
 # ========================
 RATE_LIMIT = int(os.getenv("RATE_LIMIT", "9").strip())
 WINDOW_SECONDS = int(os.getenv("WINDOW_SECONDS", "15").strip())
-PENALTY_SECONDS = int(os.getenv("PENALTY_SECONDS", "30").strip())
+PENALTY_SECONDS = int(os.getenv("PENALTY_SECONDS", "150").strip())
 
 MAX_ACTIVE_CLIENTS = int(os.getenv("MAX_ACTIVE_CLIENTS", "100").strip())
 ACTIVE_TTL = int(os.getenv("ACTIVE_TTL", "60").strip())
 HOST_IP = os.getenv("HOST_IP", "0.0.0.0").strip()
 
 BF_MAX_FAILS_USER = int(os.getenv("BF_MAX_FAILS_USER", "4").strip())
-BF_USER_LOCK_SECONDS = int(os.getenv("BF_USER_LOCK_SECONDS", "10").strip())
+BF_USER_LOCK_SECONDS = int(os.getenv("BF_USER_LOCK_SECONDS", "7200").strip())
 BF_MAX_FAILS_IP = int(os.getenv("BF_MAX_FAILS_IP", "20").strip())
-BF_IP_BLOCK_SECONDS = int(os.getenv("BF_IP_BLOCK_SECONDS", "10").strip())
+BF_IP_BLOCK_SECONDS = int(os.getenv("BF_IP_BLOCK_SECONDS", "7200").strip())
 
 UNPROT_CONC_THRESHOLD = int(os.getenv("UNPROT_CONC_THRESHOLD", "4").strip())
 GLOBAL_SLOWDOWN_SECONDS = int(os.getenv("GLOBAL_SLOWDOWN_SECONDS", "20").strip())
