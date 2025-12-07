@@ -1,4 +1,4 @@
-Secure Reservation System with Reverse Proxy
+A Multi-Layered Security Model for Web Platforms: Preventing SQLi, XSS, Automated Login Abuse and Request Flooding Using a Reverse Proxy
 
 This project implements a secure reservation platform built with FastAPI and Redis. At the core of the system is a custom reverse proxy that inspects and filters all incoming requests before they reach the backend. The proxy provides SQL injection detection, XSS detection, brute force protection, rate limiting, IP blocking, and security logging. A Streamlit dashboard is included for real-time monitoring and analytics.
 
