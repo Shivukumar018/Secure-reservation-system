@@ -43,56 +43,59 @@ A Streamlit-based admin dashboard displays real-time logs and analytics.
 
 4. Folder Structure
 
-mini_project
+mini_project/
+│
+├── .gitignore
+├── README.md
+├── start_all_services.bat
+│
+├── admin/
+│   └── admin.py
+│
+├── backend/
+│   └── main.py
+│
+├── frontend/
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── style.css
+│   │   └── img/
+│   │       └── qr.png
+│   │
+│   └── templates/
+│       ├── base.html
+│       ├── book.html
+│       ├── bookings.html
+│       ├── dashboard.html
+│       ├── index.html
+│       ├── invoice.html
+│       ├── login.html
+│       ├── logout_success.html
+│       ├── payment.html
+│       ├── register.html
+│       ├── search_auth.html
+│       └── search_guest.html
+│
+└── security/
+    ├── create_admin.py
+    ├── proxy.py
+    ├── state.py
+    ├── utils.py
+    ├── __init__.py
+    │
+    ├── logs/
+    │   ├── sqlite_logger.py
+    │   └── __init__.py
+    │
+    └── protections/
+        ├── brute_force.py
+        ├── ml_detector.py
+        ├── queue_control.py
+        ├── rate_limiter.py
+        ├── sqli_detector.py
+        ├── xss_detector.py
+        └── __init__.py
 
-admin
-admin.py
-
-backend
-
-main.py
-
-frontend
-static
-css/style.css
-img/qr.png
-
-templates
-
-index.html
-login.html
-register.html
-dashboard.html
-search_guest.html
-search_auth.html
-book.html
-payment.html
-invoice.html
-bookings.html
-
-security
-
-proxy.py
-state.py
-utils.py
-create_admin.py
-
-logs
-
-sqlite_logger.py
-
-protections
-
-brute_force.py
-rate_limiter.py
-sqli_detector.py
-xss_detector.py
-queue_control.py
-ml_detector.py
-
-start_all_services.bat
-
-.gitignore
 
 5. Security Modules Overview
 SQL Injection Detection
