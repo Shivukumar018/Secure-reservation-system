@@ -15,45 +15,7 @@ The reverse proxy provides multiple security functions such as SQL injection det
 
 3. System Architecture
 
-Users access the frontend pages built with HTML and CSS.
-
-All requests are sent to the security reverse proxy before reaching the backend.
-
-The proxy evaluates each request for:
-
-SQL injection attempts
-
-XSS payloads
-
-Brute-force login patterns
-
-Rate-limit violations
-
-Harmful requests are blocked and logged.
-
-Safe requests are forwarded to the backend API with a trusted internal secret header.
-
-The backend handles:
-
-User login and registration
-
-Train search
-
-Ticket booking
-
-Invoice generation
-
-User accounts and bookings are stored in SQLite.
-
-Redis stores:
-
-Security counters
-
-IP penalties
-
-Rate-limiting data
-
-A Streamlit admin dashboard shows real-time logs, blocked IPs, and analytics.
+Users access the frontend pages built with HTML and CSS, and every request is routed through the security reverse proxy before it reaches the backend. The proxy inspects each request for SQL injection attempts, XSS payloads, brute-force login patterns, and rate-limit violations, blocking and logging anything unsafe. Valid requests are forwarded to the backend along with a trusted internal secret header. The backend handles user authentication, train search, ticket booking, invoice generation, and manages all stored data using SQLite. Redis is used to maintain security counters, IP penalties, and rate-limiting information. A Streamlit-based admin dashboard provides real-time visibility into logs, blocked IPs, and security analytics.
 
 4. Folder Structure
 
@@ -150,7 +112,7 @@ Admin dashboard on port 8501
 
 8. Testing Examples
 
-SQL Injection Testing : 
+---> SQL Injection Testing : 
 
 ' OR '1'='1
 
@@ -158,19 +120,19 @@ UNION SELECT 1,2,3
 
 Encoded inputs such as %27 OR 1=1
 
-XSS Testing :
+---> XSS Testing :
 
 <script>alert(1)</script>
 
 javascript:alert(1)
 
-Image payloads like <img src=x onerror=alert(1)>
+Image payloads like<img src=x onerror=alert(1)>
 
-Brute Force Testing : 
+---> Brute Force Testing : 
 
 Repeated incorrect login attempts
 
-Rate Limiting Testing : 
+---> Rate Limiting Testing : 
 
 Sending more than 9 requests within 15 seconds
 
