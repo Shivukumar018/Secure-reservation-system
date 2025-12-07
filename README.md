@@ -8,17 +8,52 @@ This system shows how a reservation-based web application can be protected using
 This architecture ensures that unsafe traffic is filtered out before reaching the application.
 
 2. Key Features
+
 The application supports user registration, login, train search, ticket booking, invoice generation, and persistent booking history. It uses a clean interface built with HTML and CSS.
 
 The reverse proxy provides multiple security functions such as SQL injection detection, XSS detection, rate limiting powered by Redis and Lua scripts, brute-force login protection, temporary and permanent IP blocking, and internal secret validation between the proxy and backend. It also logs blocked events and provides analytics through a Streamlit dashboard.
 
 3. System Architecture
 
-Users access the frontend pages built using HTML and CSS. All traffic is routed through the security reverse proxy, which evaluates each request for potential SQL injection attempts, XSS payloads, brute-force patterns, and rate-limit violations. If a request is considered harmful, the proxy blocks it and records the event.
-If the request is safe, the proxy forwards it to the backend API along with an internal secret header.
+Users access the frontend pages built with HTML and CSS.
 
-The backend handles all application features including login, searching trains, managing bookings, and generating invoices. User data and booking information are stored in SQLite, while Redis is used to store security counters, penalty values, and rate-limiting data.
-A Streamlit-based admin dashboard displays logs, blocked IPs, and real-time analytics.
+All requests are sent to the security reverse proxy before reaching the backend.
+
+The proxy evaluates each request for:
+
+SQL injection attempts
+
+XSS payloads
+
+Brute-force login patterns
+
+Rate-limit violations
+
+Harmful requests are blocked and logged.
+
+Safe requests are forwarded to the backend API with a trusted internal secret header.
+
+The backend handles:
+
+User login and registration
+
+Train search
+
+Ticket booking
+
+Invoice generation
+
+User accounts and bookings are stored in SQLite.
+
+Redis stores:
+
+Security counters
+
+IP penalties
+
+Rate-limiting data
+
+A Streamlit admin dashboard shows real-time logs, blocked IPs, and analytics.
 
 4. Folder Structure
 
@@ -106,6 +141,7 @@ Start Redis using Docker.
 Run the start_all_services.bat script.
 
 This launches:
+
 Backend on port 5000
 
 Reverse proxy on port 8000
@@ -114,7 +150,29 @@ Admin dashboard on port 8501
 
 8. Testing Examples
 
-The system can be tested using different types of simulated attacks. For SQL injection, inputs such as ' OR '1'='1, UNION SELECT 1,2,3, and encoded forms like %27 OR 1=1 can be used. For XSS, tests may include script tag injections, javascript URLs, and image payloads containing onerror attributes. Brute force protection can be tested by repeatedly entering incorrect login credentials, while rate limiting can be verified by sending more than nine requests within fifteen seconds.
+SQL Injection Testing : 
+
+' OR '1'='1
+
+UNION SELECT 1,2,3
+
+Encoded inputs such as %27 OR 1=1
+
+XSS Testing :
+
+<script>alert(1)</script>
+
+javascript:alert(1)
+
+Image payloads like <img src=x onerror=alert(1)>
+
+Brute Force Testing : 
+
+Repeated incorrect login attempts
+
+Rate Limiting Testing : 
+
+Sending more than 9 requests within 15 seconds
 
 9. License
 
