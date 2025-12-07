@@ -103,9 +103,9 @@ Run the start_all_services.bat script.
 
 This launches:
 
-Backend on port 5000
-Reverse proxy on port 8000
-Admin dashboard on port 8501
+Backend on port 5000,
+ Reverse proxy on port 8000,
+ Admin dashboard on port 8501
 
 7. Testing Examples
 
