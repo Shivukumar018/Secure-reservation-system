@@ -4,62 +4,21 @@ This project implements a secure reservation platform built with FastAPI and Red
 
 1. Overview
 
-The system demonstrates how a reservation-based web application can be protected using a lightweight security layer similar to a Web Application Firewall.
-
-Users interact with the frontend while every request is routed through the reverse proxy. The proxy evaluates the payload and blocks anything suspicious. The backend is isolated and only accepts requests that include a valid internal secret header sent by the proxy.
-
-This structure makes the project suitable for academic submissions, cybersecurity demonstrations, and portfolio use.
+This system shows how a reservation-based web application can be protected using a lightweight security layer that acts like a simple Web Application Firewall. Users interact with the frontend, and every request first goes through the reverse proxy. The proxy analyzes the incoming payload and blocks anything that appears suspicious. The backend remains isolated and only accepts requests that include a valid internal secret header that is added by the proxy.
+This architecture ensures that unsafe traffic is filtered out before reaching the application.
 
 2. Key Features
-Application
+The application supports user registration, login, train search, ticket booking, invoice generation, and persistent booking history. It uses a clean interface built with HTML and CSS.
 
-User registration and login
-
-Train search simulation
-
-Ticket booking and invoice generation
-
-Persistent booking history
-
-User-friendly HTML and CSS interface
-
-Security (Reverse Proxy)
-
-SQL injection detection
-
-XSS detection
-
-Rate limiting powered by Redis and Lua
-
-Brute force login protection
-
-IP blocking with temporary and permanent modes
-
-Internal secret validation between proxy and backend
-
-Centralized blocking and event logs
-
-Streamlit dashboard for analytics
+The reverse proxy provides multiple security functions such as SQL injection detection, XSS detection, rate limiting powered by Redis and Lua scripts, brute-force login protection, temporary and permanent IP blocking, and internal secret validation between the proxy and backend. It also logs blocked events and provides analytics through a Streamlit dashboard.
 
 3. System Architecture
 
-The user interacts with the frontend pages built with HTML and CSS.
+Users access the frontend pages built using HTML and CSS. All traffic is routed through the security reverse proxy, which evaluates each request for potential SQL injection attempts, XSS payloads, brute-force patterns, and rate-limit violations. If a request is considered harmful, the proxy blocks it and records the event.
+If the request is safe, the proxy forwards it to the backend API along with an internal secret header.
 
-All requests are routed to the security reverse proxy.
-
-The proxy inspects each request for SQL injection patterns, XSS payloads, brute force attempts, and rate limit violations.
-
-If malicious behavior is detected, the proxy blocks the request and logs the event.
-
-Safe requests are forwarded to the backend API along with an internal secret header.
-
-The backend performs login, reservation, search, and invoice functions.
-
-SQLite stores user accounts and booking information.
-
-Redis stores security counters, penalty statuses, and rate-limiting data.
-
-A Streamlit-based admin dashboard displays real-time logs and analytics.
+The backend handles all application features including login, searching trains, managing bookings, and generating invoices. User data and booking information are stored in SQLite, while Redis is used to store security counters, penalty values, and rate-limiting data.
+A Streamlit-based admin dashboard displays logs, blocked IPs, and real-time analytics.
 
 4. Folder Structure
 
@@ -122,62 +81,40 @@ mini_project/
 5. Security Modules Overview
 SQL Injection Detection
 
-User input is normalized through URL decoding, HTML decoding, Unicode normalization, and SQL comment removal. The detector checks for patterns such as union-based injections, tautologies, stacked queries, encoded payloads, time delays, and hex-based SQL.
-Testing accuracy was approximately 97 to 98 percent with minimal false positives.
+SQL injection protection works by normalizing user input before analysis. This process includes URL decoding, HTML decoding, Unicode normalization, and the removal of SQL comments. After the input is cleaned, the system checks for common SQLi patterns such as union-based injections, tautologies, stacked queries, encoded payloads, time-delay functions, and hex-encoded SQL. During testing, the detection accuracy was roughly 97 to 98 percent, with very few false positives.
 
 XSS Detection
 
-This module identifies script tags, event attributes, javascript URLs, SVG and IMG payloads, and encoded or obfuscated attack patterns.
-Detection accuracy ranged from 90 to 94 percent.
+The XSS detection module scans for script tags, event handler attributes, javascript URLs, SVG and IMG-based attacks, and different forms of encoded or obfuscated payloads. It successfully detects most real-world attack patterns, with a testing accuracy between 90 and 94 percent.
 
 Rate Limiting
 
-Each IP is limited to 9 requests every 15 seconds.
-Exceeding the limit triggers a temporary penalty stored in Redis, and further requests return a 429 error.
+Rate limiting ensures that each IP address can send only nine requests every fifteen seconds. If this limit is exceeded, the proxy assigns a temporary penalty to the IP using Redis, and any further requests from that IP receive a 429 error response until the penalty expires.
 
 Brute Force Protection
 
-Failed login attempts are tracked per user and per IP.
-Repeated failures result in temporary or full IP blocks.
-All blocks expire automatically after a set duration.
+Brute force protection monitors failed login attempts for both individual users and IP addresses. When repeated failures are detected, the system either slows down the attacker with temporary penalties or blocks the IP entirely for a period of time. All blocks automatically expire after their designated duration.
 
-6. Admin Dashboard
+Admin Dashboard
 
-The dashboard provides:
-Active user counts
-Blocked IP list
-SQL injection and XSS detection logs
-Rate limiter violations
-Brute force attempts
-Analytics charts
-It runs on port 8501.
+The admin dashboard provides a real-time view of system activity. It shows the number of active users, the list of blocked IP addresses, recent SQL injection and XSS detection logs, rate limiter violations, and brute-force attempts. It also includes simple analytics charts to help monitor security events. The dashboard runs on port 8501.
 
-7. Running the Project
+6. Running the Project
 
 Start Redis using Docker.
+
 Run the start_all_services.bat script.
 
 This launches:
 Backend on port 5000
+
 Reverse proxy on port 8000
+
 Admin dashboard on port 8501
 
 8. Testing Examples
 
-SQL Injection
-' OR '1'='1
-UNION SELECT 1,2,3
-Encoded inputs such as %27 OR 1=1
-
-XSS
-script tag based injections
-javascript URLs
-image payloads with onerror
-
-Brute Force
-Repeated incorrect login attempts
-Rate Limiting
-More than 9 requests in 15 seconds
+The system can be tested using different types of simulated attacks. For SQL injection, inputs such as ' OR '1'='1, UNION SELECT 1,2,3, and encoded forms like %27 OR 1=1 can be used. For XSS, tests may include script tag injections, javascript URLs, and image payloads containing onerror attributes. Brute force protection can be tested by repeatedly entering incorrect login credentials, while rate limiting can be verified by sending more than nine requests within fifteen seconds.
 
 9. License
 
