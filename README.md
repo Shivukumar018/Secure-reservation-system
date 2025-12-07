@@ -99,15 +99,12 @@ The admin dashboard provides a real-time view of system activity. It shows the n
 6. Running the Project
 
 Start Redis using Docker.
-
 Run the start_all_services.bat script.
 
 This launches:
 
 Backend on port 5000
-
 Reverse proxy on port 8000
-
 Admin dashboard on port 8501
 
 8. Testing Examples
@@ -122,11 +119,7 @@ Encoded inputs such as %27 OR 1=1
 
 ---> XSS Testing :
 
-<script>alert(1)</script>
-
-javascript:alert(1)
-
-Image payloads like<img src=x onerror=alert(1)>
+XSS testing can be done using common payloads such as <script>alert(1)</script>, javascript:alert(1), and image-based attacks like <img src="x" onerror="alert(1)">, which help confirm whether the proxy correctly detects and blocks script execution attempts.
 
 ---> Brute Force Testing : 
 
