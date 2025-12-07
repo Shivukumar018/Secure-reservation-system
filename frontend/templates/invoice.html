@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Invoice{% endblock %}
+
+{% block content %}
+<section style="display:flex; justify-content:center; margin-top:40px; margin-bottom:40px;">
+  <div style="max-width:800px; width:95%; background:var(--white); padding:30px 40px; border:3px solid var(--gold-dark); border-radius:16px; box-shadow:0 10px 25px rgba(0,0,0,0.15); font-family:'Times New Roman', serif;">
+    
+    <!-- Invoice Header -->
+    <div style="text-align:center; margin-bottom:30px;">
+      <h1 style="margin:0; font-size:2rem; font-weight:900; color:var(--royal);">Online Reservation System - Invoice</h1>
+      <p><strong>Invoice Date & Time:</strong> {{ booking.booking_time }}</p>
+      <p><strong>Invoice Number:</strong> {{ booking.invoice_no }}</p>
+    </div>
+
+    <!-- Journey Details -->
+    <table style="width:100%; margin-top:20px; border-collapse:collapse;">
+      <tr>
+        <th style="text-align:left; padding:12px;">Train Number</th>
+        <td style="padding:12px;">{{ booking.trainno }}</td>
+      </tr>
+      <tr>
+        <th style="text-align:left; padding:12px;">Train Name</th>
+        <td style="padding:12px;">{{ booking.train_name }}</td>
+      </tr>
+      <tr>
+        <th style="text-align:left; padding:12px;">Route</th>
+        <td style="padding:12px;">{{ booking.from_city }} → {{ booking.to_city }}</td>
+      </tr>
+      <tr>
+        <th style="text-align:left; padding:12px;">Class</th>
+        <td style="padding:12px;">{{ booking.class_type }}</td>
+      </tr>
+      <tr>
+        <th style="text-align:left; padding:12px;">Passengers</th>
+        <td style="padding:12px;">{{ booking.passengers }}</td>
+      </tr>
+      <tr>
+        <th style="text-align:left; padding:12px;">Payment Status</th>
+        <td style="padding:12px; color:green; font-weight:900;">Successful</td>
+      </tr>
+    </table>
+
+    <!-- Fare Summary -->
+    <table style="width:100%; margin-top:20px; border-collapse:collapse;">
+      <tr>
+        <th style="text-align:left; padding:12px;">Description</th>
+        <th style="text-align:left; padding:12px;">Amount (₹)</th>
+      </tr>
+      <tr>
+        <td style="padding:12px;">Base Fare</td>
+        <td style="padding:12px;">{{ booking.amount }}</td>
+      </tr>
+      <tr>
+        <td style="padding:12px; font-weight:900;">Total Fare</td>
+        <td style="padding:12px; font-weight:900;">₹{{ booking.amount }}</td>
+      </tr>
+    </table>
+
+    <!-- Back Button -->
+    <div style="display:flex; justify-content:center; margin-top:30px;">
+      <a href="/bookings" style="padding:12px 24px; background:var(--gold-dark); color:white; border-radius:12px; font-weight:800; text-decoration:none;">Back to My Bookings</a>
+    </div>
+
+    <p style="text-align:center; margin-top:20px; color:var(--text-grey); font-size:0.95rem;">This invoice is computer generated and valid without signature.</p>
+  </div>
+</section>
+{% endblock %}

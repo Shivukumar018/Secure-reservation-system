@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Search Trains | Guest{% endblock %}
+{% block content %}
+
+<div class="alert-box fade-in"></div>
+
+<section class="home-container fade-in">
+  <div class="card-wide">
+    <h2 class="page-title">Search Trains</h2>
+
+    <form id="searchForm" method="get" action="/search">
+      
+      <!-- ✅ FROM & TO fields - Larger & Side by Side -->
+      <div style="display:flex; gap:25px; justify-content:center; width:100%; margin-bottom:25px;">
+        <select id="fromCity" name="frm" required class="input-field"
+                style="flex:1; max-width:350px; padding:16px; font-size:1.1rem; border-width:3px;">
+          <option value="">From (City)</option>
+          {% for c in cities %}
+            <option value="{{ c }}" {% if frm==c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+
+        <select id="toCity" name="to" required class="input-field"
+                style="flex:1; max-width:350px; padding:16px; font-size:1.1rem; border-width:3px;">
+          <option value="">To (City)</option>
+          {% for c in cities %}
+            <option value="{{ c }}" {% if to==c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn-home" style="font-size:1.1rem; padding:12px 28px; border-width:3px;">
+        Show Availability
+      </button>
+    </form>
+
+    <div id="resultsSection" style="margin-top:25px;">
+      {% if results is not none %}
+        {% if results|length == 0 %}
+          <p class="no-results-msg">No trains available for this route.</p>
+        {% else %}
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th>Train No</th>
+                <th>Name</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Dep</th>
+                <th>Arr</th>
+                <th>Seats</th>
+                <th>Book</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for tr in results %}
+              <tr>
+                <td>{{ tr.no }}</td>
+                <td>{{ tr.name }}</td>
+                <td>{{ tr.frm }}</td>
+                <td>{{ tr.to }}</td>
+                <td>{{ tr.dep }}</td>
+                <td>{{ tr.arr }}</td>
+                <td>{{ tr.seats }}</td>
+                <td>
+                  <a href="#" onclick="showLoginPopup()" class="btn-disabled">Book</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      {% else %}
+        <p class="no-results-msg"></p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- Login Required Popup -->
+<div id="loginPopup" class="popup-backdrop">
+  <div class="popup-card">
+    <h3 class="popup-title">Login Required</h3>
+    <p class="popup-text">Please login to continue booking your tickets.</p>
+    <div class="popup-actions">
+      <button onclick="closeLoginPopup()" class="btn-outline">Close</button>
+      <a href="/login" class="btn-home">Login</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showLoginPopup() {
+    document.getElementById('loginPopup').style.display = 'flex';
+  }
+  function closeLoginPopup() {
+    document.getElementById('loginPopup').style.display = 'none';
+  }
+</script>
+
+{% endblock %}

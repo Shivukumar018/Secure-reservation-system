@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+
+<!-- Main Backdrop -->
+<div class="popup-backdrop" style="display:flex; justify-content:center; align-items:center; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:1000;">
+
+  <!-- Login Card -->
+  <div id="loginCard" style="background:var(--white); border:2px solid var(--gold-dark); border-radius:16px; padding:40px; width:100%; max-width:400px; box-shadow:0 10px 25px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:20px;">
+    
+    <!-- Header -->
+    <h2 style="text-align:center; margin-bottom:20px;">Login</h2>
+
+    <!-- Login Form -->
+    <form id="loginForm" method="post" action="/login" style="display:flex; flex-direction:column; gap:20px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <label style="min-width:120px; font-weight:700;">Email or Phone:</label>
+        <input name="identifier" required class="input-field" style="flex:1; padding:12px; font-size:1rem;">
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px;">
+        <label style="min-width:120px; font-weight:700;">Password:</label>
+        <input type="password" name="password" required class="input-field" style="flex:1; padding:12px; font-size:1rem;">
+      </div>
+
+      <button type="submit" class="btn-home" style="font-size:1rem; padding:12px 0;">Sign In</button>
+
+      <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+        <a href="/forgot" class="link-text"></a>
+        <a href="/register" class="link-text">Register Create an account</a>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- Message Popup -->
+<div id="msgPopup" class="popup-backdrop" style="display:none; z-index:2000;">
+  <div class="popup-card" style="padding:30px; max-width:350px;">
+    <h3 id="msgTitle" class="popup-title"></h3>
+    <p id="msgText" class="popup-text"></p>
+    <div style="text-align:center; margin-top:15px;">
+      <button onclick="closePopup()" class="btn-outline" style="padding:8px 16px;">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('loginForm');
+const popup = document.getElementById('msgPopup');
+const title = document.getElementById('msgTitle');
+const text = document.getElementById('msgText');
+
+form.addEventListener('submit', async function(e){
+  e.preventDefault();
+  const data = new FormData(form);
+
+  try {
+    const resp = await fetch(form.action, { method:'POST', body:data });
+    const result = (await resp.text()).trim();
+
+    if(result === 'UserNotFound'){
+      showMsg('Account Not Found', 'No user found with this email or phone. Please register first.');
+    } else if(result === 'InvalidCredentials'){
+      showMsg('Incorrect Password', 'The password entered is incorrect. Try again.');
+    } else if(resp.redirected || result === 'LoginSuccess'){
+      window.location.href = resp.url || '/dashboard';
+    } else {
+      showMsg('Error', result || 'Something went wrong. Please try again.');
+    }
+
+  } catch(err){
+    showMsg('Network Error', 'Unable to connect. Try again.');
+    console.error(err);
+  }
+});
+
+function showMsg(t, m){
+  title.textContent = t;
+  text.textContent = m;
+  popup.style.display = 'flex';
+}
+
+function closePopup(){
+  popup.style.display = 'none';
+}
+</script>
+<script>
+(function(){
+  let id = localStorage.getItem("golden_device_id");
+  if(!id){
+    id = 'dev-' + Math.random().toString(36).slice(2,12);
+    localStorage.setItem("golden_device_id", id);
+  }
+  document.cookie = "golden_device_id=" + id + "; path=/; samesite=strict";
+})();
+</script>
+
+{% endblock %}

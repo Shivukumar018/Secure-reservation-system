@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+{% block content %}
+<div class="container py-5" style="min-height:75vh; display:flex; align-items:center;">
+  <div class="row w-100 g-4">
+    <!-- Left Box: Reservation System -->
+    <div class="col-md-6 d-flex justify-content-center">
+      <div class="shadow p-4 rounded w-100" style="background:var(--white); max-width:400px;">
+        <h2 class="text-center fw-bold mb-4" style="color:var(--royal);">RESERVATION SYSTEM</h2>
+        <div class="d-flex flex-column gap-3">
+          <a href="/search" class="btn fw-bold py-3 border border-warning w-100" style="background:transparent; color:var(--royal); border-width:3px;">SEARCH</a>
+          <a href="/login" class="btn fw-bold py-3 border border-warning w-100" style="background:transparent; color:var(--royal); border-width:3px;">LOGIN</a>
+          <a href="/register" class="btn fw-bold py-3 border border-warning w-100" style="background:transparent; color:var(--royal); border-width:3px;">REGISTER</a>
+        </div>
+      </div>
+    </div>
+    <!-- Right Box: Instructions -->
+    <div class="col-md-6 d-flex justify-content-center">
+      <div class="shadow p-4 rounded w-100" style="background:#ffe6e6; max-width:400px;">
+        <h4 class="fw-bold mb-3" style="color:var(--royal);">Important Information</h4>
+        <ul class="mt-2 mb-0" style="padding-left:20px; font-size:0.95rem; color:var(--royal); text-align:left;">
+          <li>This system is protected by multiple security layers.</li>
+          <li>During peak hours you may be placed in a virtual queue.</li>
+          <li>Valid ID is required for booking and during travel.</li>
+          <li>Cancellation and refund rules apply as per policy.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

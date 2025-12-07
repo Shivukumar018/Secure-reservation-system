@@ -1,0 +1,302 @@
+# admin.py — Streamlit Dashboard for Golden Express Proxy (Final with Blocked IPs)
+import streamlit as st
+import requests
+import pandas as pd
+import plotly.express as px
+import pytz
+from datetime import datetime
+import redis
+
+# -----------------------------
+# CONFIG
+# -----------------------------
+PROXY_BASE = "http://localhost:8000"
+ADMIN_EMAIL = "admin"
+ADMIN_PASSWORD = "admin123"
+DASHBOARD_TITLE = "Golden Express — Proxy Dashboard"
+IST = pytz.timezone("Asia/Kolkata")
+
+# -----------------------------
+# STREAMLIT CONFIG
+# -----------------------------
+st.set_page_config(page_title=DASHBOARD_TITLE, layout="wide")
+st.markdown(f"<h1 style='margin-bottom:10px'>{DASHBOARD_TITLE}</h1>", unsafe_allow_html=True)
+
+# -----------------------------
+# HELPERS
+# -----------------------------
+session = requests.Session()
+
+def api_get(path, params=None):
+    try:
+        r = session.get(f"{PROXY_BASE}{path}", params=params or {}, timeout=6)
+        r.raise_for_status()
+        return r.json()
+    except Exception as e:
+        return {"error": str(e)}
+
+def api_post(path, data=None):
+    try:
+        r = session.post(f"{PROXY_BASE}{path}", data=data or {}, timeout=6)
+        return r.status_code, r.json()
+    except Exception as e:
+        return 500, {"error": str(e)}
+
+@st.cache_data(ttl=3)
+def fetch_logs(limit=300):
+    res = api_get(f"/admin/logs?limit={limit}")
+    if "logs" not in res:
+        return pd.DataFrame()
+    df = pd.DataFrame(res["logs"])
+    if "ts" in df.columns:
+        df["ts"] = pd.to_datetime(df["ts"], errors="coerce").dt.strftime("%d %b %Y, %I:%M:%S %p")
+    return df
+
+@st.cache_data(ttl=3)
+def fetch_ml_logs(limit=300):
+    res = api_get(f"/admin/ml_logs?limit={limit}")
+    if "logs" not in res:
+        return pd.DataFrame()
+    df = pd.DataFrame(res["logs"])
+    if "ts" in df.columns:
+        df["ts"] = pd.to_datetime(df["ts"], errors="coerce").dt.strftime("%d %b %Y, %I:%M:%S %p")
+    return df
+
+def categorize_log(row):
+    outcome = (row.get("outcome") or "").lower()
+    reason = (row.get("reason") or "").lower()
+    if "sqli" in reason or "sql" in reason:
+        return "SQLi"
+    if "user_locked" in reason or "login_fail" in outcome or "bruteforce" in reason:
+        return "BruteForce"
+    if "rate" in outcome or "rate_limit" in reason:
+        return "RateLimit"
+    if "blocked" in outcome or "ip_locked" in reason:
+        return "Blocked"
+    if "allowed" in outcome:
+        return "Allowed"
+    return "Other"
+
+def readable_reason(raw_reason: str):
+    if not raw_reason:
+        return "Uncategorized"
+    text = raw_reason.lower()
+    if "sqli" in text or "pattern" in text:
+        return "Possible SQL Injection"
+    elif "password" in text:
+        return "Possible Brute-Force Attempt"
+    elif "suspicious_ua" in text or "ua" in text:
+        return "Possible Automated/Bot Activity"
+    else:
+        return "Possible Rate Limiter Violation"
+
+# -----------------------------
+# LOGIN
+# -----------------------------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    with st.form("login"):
+        st.subheader("Admin Login")
+        email = st.text_input("Email", value=ADMIN_EMAIL)
+        password = st.text_input("Password", type="password", value=ADMIN_PASSWORD)
+        submitted = st.form_submit_button("Login")
+        if submitted:
+            code, res = api_post("/admin/login", {"email": email, "password": password})
+            if code == 200 and res.get("detail") == "login_success":
+                st.session_state.logged_in = True
+                st.success("Logged in successfully.")
+                st.rerun()
+            else:
+                st.error("Invalid credentials or proxy not running.")
+    st.stop()
+
+# -----------------------------
+# SIDEBAR NAV
+# -----------------------------
+page = st.sidebar.radio("Navigation", ["Dashboard", "Logs", "Blocked Graph Analytics", "ML Logs", "Blocked IPs"])
+st.sidebar.markdown("---")
+
+if st.sidebar.button("Refresh Data"):
+    st.cache_data.clear()
+    st.rerun()
+
+if st.sidebar.button("Logout"):
+    st.session_state.logged_in = False
+    st.cache_data.clear()
+    st.rerun()
+
+# -----------------------------
+# DASHBOARD
+# -----------------------------
+if page == "Dashboard":
+    st.subheader("Proxy Mode Control")
+
+    status = api_get("/admin/status")
+    if "error" in status:
+        st.error(f"Proxy not reachable: {status['error']}")
+    else:
+        mode = status.get("mode", "UNKNOWN").upper()
+        color = "#27ae60" if mode == "STRICT" else "#c0392b"
+        st.markdown(
+            f"<div style='background:{color};color:white;padding:8px 16px;border-radius:8px;font-weight:600;text-align:center;width:250px'>{mode}</div>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Strict Mode"):
+            code, js = api_post("/admin/mode", {"mode": "strict"})
+            if code == 200:
+                st.success("Switched to STRICT (Protected) mode.")
+                st.cache_data.clear()
+                st.rerun()
+            else:
+                st.error(f"Failed: {js}")
+    with col2:
+        if st.button("Raw Mode"):
+            code, js = api_post("/admin/mode", {"mode": "raw"})
+            if code == 200:
+                st.success("Switched to RAW (Unprotected) mode.")
+                st.cache_data.clear()
+                st.rerun()
+            else:
+                st.error(f"Failed: {js}")
+
+# -----------------------------
+# LOGS (only Blocked logs)
+# -----------------------------
+elif page == "Logs":
+    st.subheader("Blocked Logs")
+
+    logs_df = fetch_logs()
+    if logs_df.empty:
+        st.info("No logs available.")
+    else:
+        logs_df["Category"] = logs_df.apply(categorize_log, axis=1)
+        tabs = st.tabs(["RATE LIMITER", "SQLi", "BRUTEFORCE"])
+
+        with tabs[0]:
+            rl = logs_df[logs_df["Category"] == "RateLimit"]
+            if rl.empty:
+                st.info("No rate limiter blocks.")
+            else:
+                rl_view = rl[["client_ip", "reason", "ts"]].rename(
+                    columns={"client_ip": "IP", "reason": "Reason", "ts": "Time (IST)"}
+                )
+                st.dataframe(rl_view.sort_values("Time (IST)", ascending=False), use_container_width=True)
+
+        with tabs[1]:
+            sqli = logs_df[logs_df["Category"] == "SQLi"]
+            if sqli.empty:
+                st.info("No SQLi blocks.")
+            else:
+                sqli_view = sqli[["client_ip", "reason", "ts"]].rename(
+                    columns={"client_ip": "IP", "reason": "Reason", "ts": "Time (IST)"}
+                )
+                st.dataframe(sqli_view.sort_values("Time (IST)", ascending=False), use_container_width=True)
+
+        with tabs[2]:
+            bf = logs_df[logs_df["Category"] == "BruteForce"]
+            if bf.empty:
+                st.info("No brute-force blocks.")
+            else:
+                bf_view = bf[["client_ip", "reason", "ts"]].rename(
+                    columns={"client_ip": "IP", "reason": "Reason", "ts": "Time (IST)"}
+                )
+                st.dataframe(bf_view.sort_values("Time (IST)", ascending=False), use_container_width=True)
+
+# -----------------------------
+# BLOCKED GRAPH ANALYTICS (today only)
+# -----------------------------
+elif page == "Blocked Graph Analytics":
+    st.subheader("Blocked Graph Analytics (Today Only)")
+    df = fetch_logs()
+    if df.empty:
+        st.info("No logs available.")
+    else:
+        df["Category"] = df.apply(categorize_log, axis=1)
+        df["date"] = pd.to_datetime(df["ts"], errors="coerce").dt.strftime("%d %b %Y")
+        today = datetime.now(IST).strftime("%d %b %Y")
+        today_df = df[df["date"] == today]
+
+        if today_df.empty:
+            st.info("No data for today.")
+        else:
+            categories = ["RateLimit", "SQLi", "BruteForce"]
+            cols = st.columns(3)
+            for i, cat in enumerate(categories):
+                cat_df = today_df[today_df["Category"] == cat]
+                with cols[i]:
+                    st.markdown(f"<b>{cat.upper()}</b>", unsafe_allow_html=True)
+                    if not cat_df.empty:
+                        count = cat_df["Category"].value_counts().reset_index()
+                        count.columns = ["Category", "Count"]
+                        fig = px.bar(count, x="Category", y="Count", text="Count",
+                                     color_discrete_sequence=px.colors.qualitative.Safe)
+                        fig.update_traces(textposition="outside", showlegend=False)
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.info(f"No {cat} data today.")
+
+# -----------------------------
+# ML LOGS
+# -----------------------------
+elif page == "ML Logs":
+    st.subheader("ML Logs (AI Detection Summary)")
+    df = fetch_ml_logs()
+    if df.empty:
+        st.info("No ML logs available.")
+    else:
+        df["Readable Reason"] = df["reason"].apply(readable_reason)
+        df = df[["ts", "client_ip", "path", "score", "Readable Reason"]]
+        df.rename(
+            columns={
+                "ts": "Time (IST)",
+                "client_ip": "Client IP",
+                "path": "Path",
+                "score": "Suspicion Score",
+                "Readable Reason": "Reason"
+            },
+            inplace=True,
+        )
+        st.dataframe(df.sort_values("Time (IST)", ascending=False), use_container_width=True)
+
+# -----------------------------
+# BLOCKED IPS (Manual Unblock)
+# -----------------------------
+elif page == "Blocked IPs":
+    st.subheader("Blocked IPs (Manual Unblock)")
+
+    try:
+        rdb = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+        blocked_keys = rdb.keys("blocked:ip:*")
+
+        if not blocked_keys:
+            st.success("No IPs are currently blocked.")
+        else:
+            rows = []
+            logs_df = fetch_logs()
+            for k in blocked_keys:
+                ip = k.split(":", 2)[-1]
+                ttl = rdb.ttl(k)
+                latest_reason = ""
+                if not logs_df.empty:
+                    sub = logs_df[logs_df["client_ip"] == ip]
+                    if not sub.empty:
+                        latest_reason = sub.sort_values("ts", ascending=False).iloc[0]["reason"]
+                rows.append({"IP": ip, "TTL (s)": ttl, "Latest Reason": latest_reason})
+            df = pd.DataFrame(rows)
+            st.dataframe(df, use_container_width=True)
+
+            sel = st.multiselect("Select IPs to unblock", df["IP"].tolist())
+            if sel and st.button("Unblock Selected IPs"):
+                for ip in sel:
+                    rdb.delete(f"blocked:ip:{ip}")
+                st.success(f"Unblocked: {', '.join(sel)}")
+                st.rerun()
+
+    except Exception as e:
+        st.error(f"Redis connection failed: {e}")

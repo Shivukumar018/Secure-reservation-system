@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Payment{% endblock %}
+{% block content %}
+
+<section class="home-container fade-in" style="align-items:center;">
+  <div class="card-wide" style="max-width:880px;">
+    <h2 class="page-title">Payment Gateway</h2>
+
+    <div class="info-box" style="justify-content:space-between;">
+      <div><strong>Train:</strong> <span class="highlight">{{ trainno }}</span> — <span class="highlight">{{ name }}</span></div>
+      <div><strong>Route:</strong> <span class="highlight">{{ from_ }}</span> → <span class="highlight">{{ to }}</span></div>
+    </div>
+
+    <!-- Payment Info -->
+    <div class="payment-grid">
+      <div class="summary">
+        <p><strong>Class:</strong> <span class="highlight">{{ cls }}</span></p>
+        <p><strong>Passengers:</strong> <span class="highlight">{{ passengers }}</span></p>
+        <p><strong>Total Fare:</strong> <span class="highlight">₹{{ amount }}</span></p>
+      </div>
+
+      <div class="qr-box">
+        <img src="/static/img/qr.png" alt="QR Code" class="qr-image">
+        <p class="text-muted">Scan to pay</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Success Popup -->
+<div id="resultPopup" class="popup-backdrop" style="display:none;">
+  <div class="popup-card" style="background: var(--gold); color: var(--royal); padding: 50px;">
+    <h3 class="popup-title">Payment Successful</h3>
+    <p class="popup-text">Redirecting to your invoice...</p>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const popup = document.getElementById('resultPopup');
+  popup.style.display = 'flex';
+  popup.querySelector('.popup-text').textContent = 'Payment Successful! Redirecting to your invoice...';
+
+  setTimeout(() => {
+    // Redirect to invoice using session payment_data
+    window.location.href = "/invoice";
+  }, 2000);
+});
+</script>
+
+{% endblock %}

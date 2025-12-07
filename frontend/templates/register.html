@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+
+<!-- Main Backdrop -->
+<div class="popup-backdrop" style="display:flex; justify-content:center; align-items:center; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:1000;">
+
+  <!-- Register Card -->
+  <div id="registerCard" style="background:var(--white); border:2px solid var(--gold-dark); border-radius:16px; padding:40px; width:100%; max-width:450px; box-shadow:0 10px 25px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:20px;">
+    
+    <!-- Header -->
+    <h2 style="text-align:center; margin-bottom:20px;">Create Account</h2>
+
+    <!-- Register Form -->
+    <form id="regForm" method="post" action="/register" style="display:flex; flex-direction:column; gap:20px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <label style="min-width:130px; font-weight:700;">Full Name:</label>
+        <input name="name" required class="input-field" style="flex:1; padding:12px; font-size:1rem;">
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px;">
+        <label style="min-width:130px; font-weight:700;">Phone:</label>
+        <input name="phone" required class="input-field" style="flex:1; padding:12px; font-size:1rem;">
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px;">
+        <label style="min-width:130px; font-weight:700;">Email:</label>
+        <input type="email" name="email" required class="input-field" style="flex:1; padding:12px; font-size:1rem;">
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px;">
+        <label style="min-width:130px; font-weight:700;">Password:</label>
+        <input type="password" name="password" required class="input-field" style="flex:1; padding:12px; font-size:1rem;">
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px;">
+        <label style="min-width:130px; font-weight:700;">Confirm Password:</label>
+        <input type="password" name="confirm_password" required class="input-field" style="flex:1; padding:12px; font-size:1rem;">
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn-home" style="font-size:1rem; padding:12px 0;">Register</button>
+    </form>
+
+  </div>
+</div>
+
+<!-- Message Popup -->
+<div id="msgPopup" class="popup-backdrop" style="display:none; z-index:2000;">
+  <div class="popup-card" style="padding:30px; max-width:350px;">
+    <h3 id="msgTitle" class="popup-title"></h3>
+    <p id="msgText" class="popup-text"></p>
+    <div style="text-align:center; margin-top:15px;">
+      <button onclick="closePopup()" class="btn-outline" style="padding:8px 16px;">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('regForm');
+const popup = document.getElementById('msgPopup');
+const title = document.getElementById('msgTitle');
+const text = document.getElementById('msgText');
+
+form.addEventListener('submit', async function(e){
+  e.preventDefault();
+  const data = new FormData(form);
+
+  try {
+    const resp = await fetch(form.action, { method:'POST', body:data });
+    const result = (await resp.text()).trim();
+
+    if(result === 'PasswordMismatch'){
+      showMsg('Password Mismatch', 'Passwords do not match. Please try again.');
+    } else if(result === 'UserExists'){
+      showMsg('Account Exists', 'An account with this email or phone already exists.');
+    } else if(result === 'RegistrationSuccess'){
+      showMsg('Success', 'Your account has been created successfully! Click OK to go to homepage.', true);
+      form.reset();
+    } else {
+      showMsg('Error', result || 'Something went wrong. Please try again.');
+    }
+
+  } catch(err){
+    showMsg('Network Error', 'Unable to connect. Try again.');
+    console.error(err);
+  }
+});
+
+function showMsg(t, m, redirectHome=false){
+  title.textContent = t;
+  text.textContent = m;
+  popup.style.display = 'flex';
+
+  const okBtn = popup.querySelector('button');
+  okBtn.onclick = () => {
+    popup.style.display = 'none';
+    if(redirectHome) window.location.href = '/';
+  }
+}
+
+function closePopup(){
+  popup.style.display = 'none';
+}
+</script>
+
+{% endblock %}

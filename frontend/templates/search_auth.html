@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Search Trains | Login{% endblock %}
+{% block content %}
+
+<div class="alert-box fade-in">
+</div>
+
+<section class="home-container fade-in" style="align-items:flex-start;">
+  <div class="card-wide">
+    <h2 class="page-title">Search Trains</h2>
+
+    <form id="searchForm" onsubmit="return fetchAuth(event)">
+      <div class="form-row">
+        <select name="frm" required class="input-field">
+          <option value="">From (City)</option>
+          {% for c in cities %}
+            <option value="{{ c }}" {% if frm==c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+
+        <select name="to" required class="input-field">
+          <option value="">To (City)</option>
+          {% for c in cities %}
+            <option value="{{ c }}" {% if to==c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button id="searchButton" type="submit" class="btn-home" style="margin-bottom:10px;">
+         Show Availability
+      </button>
+
+      <p id="cityError" class="error-text" style="display:none;">
+         From and To cannot be the same.
+      </p>
+    </form>
+
+    <div id="resultsSection">
+      {% if results is not none %}
+        {% if results|length == 0 %}
+          <p class="no-results-msg">No trains available for this route.</p>
+        {% else %}
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th>Train No</th>
+                <th>Name</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Dep</th>
+                <th>Arr</th>
+                <th>Seats</th>
+                <th>Book</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for tr in results %}
+              <tr>
+                <td>{{ tr.no }}</td>
+                <td>{{ tr.name }}</td>
+                <td>{{ tr.frm }}</td>
+                <td>{{ tr.to }}</td>
+                <td>{{ tr.dep }}</td>
+                <td>{{ tr.arr }}</td>
+                <td>{{ tr.seats }}</td>
+                <td>
+                  <a href="/book?trainno={{ tr.no }}&name={{ tr.name }}&from_={{ tr.frm }}&to={{ tr.to }}" class="btn-home" style="padding:8px 14px;">
+                     Book
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      {% else %}
+        <p class="no-results-msg"></b>.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<script>
+function validateCities() {
+  const form = document.getElementById('searchForm');
+  const from = form.elements['frm'].value.trim();
+  const to = form.elements['to'].value.trim();
+  const err = document.getElementById('cityError');
+  const btn = document.getElementById('searchButton');
+
+  if (!from || !to) { err.style.display = 'none'; btn.disabled = false; return true; }
+
+  if (from === to) {
+    err.style.display = 'block';
+    btn.disabled = true;
+    return false;
+  } else {
+    err.style.display = 'none';
+    btn.disabled = false;
+    return true;
+  }
+}
+
+async function fetchAuth(event) {
+  event.preventDefault();
+  if (!validateCities()) return false;
+
+  const form = document.getElementById("searchForm");
+  const btn = document.getElementById("searchButton");
+  btn.disabled = true;
+  btn.textContent = "Loading...";
+
+  try {
+    const params = new URLSearchParams(new FormData(form)).toString();
+    const res = await fetch(`/search/auth?${params}`);
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const newResults = doc.querySelector("#resultsSection");
+    if (newResults) {
+      document.querySelector("#resultsSection").innerHTML = newResults.innerHTML;
+    }
+  } catch (err) {
+    console.error("Error fetching trains:", err);
+    document.querySelector("#resultsSection").innerHTML = "<p style='color:red;'>Error fetching data.</p>";
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Show Availability";
+  return false;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('searchForm');
+  form.elements['frm'].addEventListener('change', validateCities);
+  form.elements['to'].addEventListener('change', validateCities);
+});
+</script>
+
+{% endblock %}

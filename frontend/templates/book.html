@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Book Train{% endblock %}
+{% block content %}
+
+<div class="alert-box fade-in">
+  </div>
+
+<section class="home-container fade-in" style="align-items:flex-start;">
+  <div class="card-wide" style="max-width:900px;">
+    <h2 class="page-title">BOOK</h2>
+
+    <!-- ✅ Train Info -->
+    <div class="info-box">
+      <div><strong>Train:</strong> <span class="highlight">{{ trainno }}</span> — <span class="highlight">{{ name       }}           </span></div>
+      <div><strong>Route:</strong> <span class="highlight">{{ from_ }}</span> → <span class="highlight">{{ to }}</span></div>
+    </div>
+
+    <!-- ✅ Booking Form -->
+    <form id="bookingForm" action="/payment" method="post" onsubmit="return showProcessingPopup(event)">
+      <input type="hidden" name="trainno" value="{{ trainno }}">
+      <input type="hidden" name="name" value="{{ name }}">
+      <input type="hidden" name="from_" value="{{ from_ }}">
+      <input type="hidden" name="to" value="{{ to }}">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Class</label>
+          <select name="cls" id="classSelect" onchange="updateFare()" class="input-field">
+            <option value="SL">Sleeper (SL)</option>
+            <option value="3A">AC 3 Tier (3A)</option>
+            <option value="2A">AC 2 Tier (2A)</option>
+            <option value="1A">AC First (1A)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Passengers</label>
+          <input type="number" name="passengers" id="pax" min="1" max="6" value="1" onchange="updateFare()" class="input-field">
+          <small class="text-muted">Max 6 passengers</small>
+        </div>
+      </div>
+
+      <!-- ✅ Fare Display -->
+      <div class="fare-box">
+        <div>
+          <div class="fare-label">Fare per person</div>
+          <div id="fareEach" class="fare-amount">₹ 250</div>
+        </div>
+        <div>
+          <div class="fare-label">Total Fare</div>
+          <div id="fareTotal" class="fare-amount">₹ 250</div>
+        </div>
+        <input type="hidden" name="amount" id="fareInput" value="250">
+      </div>
+
+      <p id="bookError" class="error-text" style="display:none;">
+        Please enter a valid passenger count (1–6).
+      </p>
+
+      <!-- ✅ Buttons -->
+      <div class="button-row">
+        
+        <button id="payBtn" type="submit" class="btn-home">Proceed to Pay</button>
+      </div>
+    </form>
+
+    <p class="text-muted text-center" style="margin-top:20px;">
+      
+    </p>
+  </div>
+</section>
+
+<!-- ✅ Processing Popup -->
+<div id="processingPopup" class="popup-backdrop" style="display:none;">
+  <div class="popup-card" style="background: var(--gold); color: var(--royal); padding: 50px;">
+    <h3 class="popup-title">Processing to Payment Page...</h3>
+    <p class="popup-text">Please wait while we redirect you.</p>
+  </div>
+</div>
+
+<script>
+const FARES = { SL:250, '3A':720, '2A':1050, '1A':1560 };
+
+function clampPax(){
+  const paxEl = document.getElementById('pax');
+  let v = parseInt(paxEl.value || '1', 10);
+  if (isNaN(v) || v < 1) v = 1;
+  if (v > 6) v = 6;
+  paxEl.value = v;
+  return v;
+}
+
+function updateFare(){
+  const cls = document.getElementById('classSelect').value;
+  const pax = clampPax();
+  const each = FARES[cls] || 250;
+  const total = each * pax;
+  document.getElementById('fareEach').textContent = `₹ ${each}`;
+  document.getElementById('fareTotal').textContent = `₹ ${total}`;
+  document.getElementById('fareInput').value = total;
+}
+
+function showProcessingPopup(e){
+  e.preventDefault();
+  const popup = document.getElementById('processingPopup');
+  const btn = document.getElementById('payBtn');
+  const pax = clampPax();
+
+  if (pax < 1 || pax > 6) {
+    document.getElementById('bookError').style.display = 'block';
+    return false;
+  }
+
+  popup.style.display = 'flex';
+  btn.disabled = true;
+  setTimeout(() => { e.target.submit(); }, 2000);
+  return false;
+}
+
+document.addEventListener('DOMContentLoaded', updateFare);
+</script>
+
+{% endblock %}

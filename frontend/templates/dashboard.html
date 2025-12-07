@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="alert-box fade-in"></div>
+
+<section class="home-container fade-in" style="align-items:flex-start;">
+  <div class="card-wide">
+    <h2 class="page-title">Search Trains</h2>
+
+    <form id="dashSearchForm" onsubmit="return dashFetch(event)">
+      <div class="form-row">
+        <select name="frm" required class="input-field">
+          <option value="">From (City)</option>
+          {% for c in cities %}
+            <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+        </select>
+        <select name="to" required class="input-field">
+          <option value="">To (City)</option>
+          {% for c in cities %}
+            <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button id="dashSearchBtn" type="submit" class="btn-home" style="margin-bottom:10px;">
+        Show Availability
+      </button>
+
+      <p id="cityError" class="error-text" style="display:none;">
+        From and To cannot be the same.
+      </p>
+    </form>
+
+    <div id="dashResults" style="margin-top:20px;">
+      <p class="no-results-msg"></b>.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+function validateCities() {
+  const form = document.getElementById('dashSearchForm');
+  const from = form.elements['frm'].value.trim();
+  const to = form.elements['to'].value.trim();
+  const err = document.getElementById('cityError');
+  const btn = document.getElementById('dashSearchBtn');
+
+  if (!from || !to) {
+    err.style.display = 'none';
+    btn.disabled = !(from && to);
+    return true;
+  }
+  if (from === to) {
+    err.style.display = 'block';
+    btn.disabled = true;
+    return false;
+  } else {
+    err.style.display = 'none';
+    btn.disabled = false;
+    return true;
+  }
+}
+
+async function dashFetch(e) {
+  e.preventDefault();
+  if (!validateCities()) {
+    document.getElementById('dashSearchForm').animate(
+      [{ transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' }, { transform: 'translateX(0)' }],
+      { duration: 180 }
+    );
+    return false;
+  }
+
+  const form = document.getElementById('dashSearchForm');
+  const btn = document.getElementById('dashSearchBtn');
+  const params = new URLSearchParams(new FormData(form)).toString();
+
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+  document.getElementById('dashResults').innerHTML = "<p class='text-muted'>Fetching trains…</p>";
+
+  try {
+    const res = await fetch(`/search/auth?${params}`);
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const newResults = doc.querySelector("#resultsSection");
+    document.getElementById('dashResults').innerHTML = newResults ? newResults.innerHTML : "<p>No results.</p>";
+  } catch (err) {
+    document.getElementById('dashResults').innerHTML = "<p class='error-text'> Failed to load data. Try again.</p>";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = " Show Availability";
+  }
+  return false;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('dashSearchForm');
+  form.elements['frm'].addEventListener('change', validateCities);
+  form.elements['to'].addEventListener('change', validateCities);
+});
+</script>
+
+{% endblock %}
