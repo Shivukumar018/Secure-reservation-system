@@ -107,7 +107,7 @@ Backend on port 5000
 Reverse proxy on port 8000
 Admin dashboard on port 8501
 
-8. Testing Examples
+7. Testing Examples
 
 ---> SQL Injection Testing : 
 
@@ -119,7 +119,7 @@ Encoded inputs such as %27 OR 1=1
 
 ---> XSS Testing :
 
-XSS testing can be done using common payloads such as <script>alert(1)</script>, javascript:alert(1), and image-based attacks like <img src="x" onerror="alert(1)">, which help confirm whether the proxy correctly detects and blocks script execution attempts.
+XSS testing can be done using common payloads such as <script>alert(1)</script>, javascript:alert(1), and image-based attacks like <img src="x" onerror="alert(1")>, which help confirm whether the proxy correctly detects and blocks script execution attempts.
 
 ---> Brute Force Testing : 
 
@@ -129,11 +129,11 @@ Repeated incorrect login attempts
 
 Sending more than 9 requests within 15 seconds
 
-9. License
+8. License
 
 This project is intended for educational and portfolio purposes.
 
-10. Contributions
+9. Contributions
 
 You may fork this repository and extend the system.
 
