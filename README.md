@@ -43,8 +43,8 @@ A Streamlit-based admin dashboard displays real-time logs and analytics.
 
 4. Folder Structure
 
+```
 mini_project/
-│
 ├── .gitignore
 ├── README.md
 ├── start_all_services.bat
@@ -95,6 +95,8 @@ mini_project/
         ├── sqli_detector.py
         ├── xss_detector.py
         └── __init__.py
+```
+
 
 
 5. Security Modules Overview
