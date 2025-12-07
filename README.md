@@ -166,3 +166,6 @@ This project is intended for educational and portfolio purposes.
 10. Contributions
 
 You may fork this repository and extend the system.
+
+
+The ml_detector.py and queue_control.py modules are present in the codebase for exploratory purposes. They are not active components of the security pipeline and were not part of the mini project's scope or final feature set.
