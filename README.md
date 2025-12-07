@@ -5,6 +5,7 @@ This project implements a secure reservation platform built with FastAPI and Red
 1. Overview
 
 The system demonstrates how a reservation-based web application can be protected using a lightweight security layer similar to a Web Application Firewall.
+
 Users interact with the frontend while every request is routed through the reverse proxy. The proxy evaluates the payload and blocks anything suspicious. The backend is isolated and only accepts requests that include a valid internal secret header sent by the proxy.
 
 This structure makes the project suitable for academic submissions, cybersecurity demonstrations, and portfolio use.
@@ -13,32 +14,51 @@ This structure makes the project suitable for academic submissions, cybersecurit
 Application
 
 User registration and login
+
 Train search simulation
+
 Ticket booking and invoice generation
+
 Persistent booking history
+
 User-friendly HTML and CSS interface
 
 Security (Reverse Proxy)
 
 SQL injection detection
+
 XSS detection
+
 Rate limiting powered by Redis and Lua
+
 Brute force login protection
+
 IP blocking with temporary and permanent modes
+
 Internal secret validation between proxy and backend
+
 Centralized blocking and event logs
+
 Streamlit dashboard for analytics
 
 3. System Architecture
 
 The user interacts with the frontend pages built with HTML and CSS.
+
 All requests are routed to the security reverse proxy.
+
 The proxy inspects each request for SQL injection patterns, XSS payloads, brute force attempts, and rate limit violations.
+
 If malicious behavior is detected, the proxy blocks the request and logs the event.
+
 Safe requests are forwarded to the backend API along with an internal secret header.
+
 The backend performs login, reservation, search, and invoice functions.
+
 SQLite stores user accounts and booking information.
+
 Redis stores security counters, penalty statuses, and rate-limiting data.
+
 A Streamlit-based admin dashboard displays real-time logs and analytics.
 
 4. Folder Structure
